@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Impressive Flask Chat App</title>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Custom CSS -->
+    <style>
+      /* Custom Styles */
+      body {
+        background-color: #f8f9fa;
+      }
+      .navbar-brand {
+        font-weight: bold;
+        font-size: 1.5rem;
+      }
+      .chat-container {
+        max-width: 800px;
+        margin: 30px auto;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .chat-history {
+        height: 400px;
+        overflow-y: auto;
+        padding: 15px;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        background-color: #f1f3f5;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .chat-message {
+        margin-bottom: 15px;
+        display: flex;
+        align-items: flex-start;
+      }
+
+      .chat-message.user {
+        justify-content: flex-end;
+      }
+
+      .chat-message.ai {
+        justify-content: flex-start;
+      }
+
+      .message-content {
+        padding: 10px 15px;
+        border-radius: 20px;
+        max-width: 75%;
+        position: relative;
+      }
+
+      .chat-message.user .message-content {
+        background-color: #0d6efd;
+        color: #ffffff;
+        border-bottom-right-radius: 0;
+      }
+
+      .chat-message.ai .message-content {
+        background-color: #e9ecef;
+        color: #000000;
+        border-bottom-left-radius: 0;
+      }
+
+      .message-label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        display: block;
+      }
+
+      .chat-input-section {
+        margin-top: 20px;
+        display: flex;
+      }
+
+      .chat-input-section input {
+        flex: 1;
+        border-radius: 20px;
+        padding: 10px 15px;
+        border: 1px solid #ced4da;
+      }
+
+      .chat-input-section button {
+        margin-left: 10px;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Scrollbar Styling */
+      .chat-history::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .chat-history::-webkit-scrollbar-track {
+        background: #f1f3f5;
+        border-radius: 10px;
+      }
+
+      .chat-history::-webkit-scrollbar-thumb {
+        background-color: #ced4da;
+        border-radius: 10px;
+      }
+
+      /* Error Message Styling */
+      .error-message {
+        color: red;
+        margin-top: 10px;
+      }
+
+      /* Username Display */
+      .username-display {
+        margin-right: 15px;
+        font-weight: 500;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">PowerfulBI</a>
+        <div class="d-flex">
+          {% if logged_in %}
+          <span class="text-white me-3 username-display"
+            >Signed in as <strong>{{ username }}</strong></span
+          >
+          <button id="sign-out-btn" class="btn btn-outline-light">
+            Sign Out
+          </button>
+          {% else %}
+          <button
+            id="sign-in-btn"
+            class="btn btn-outline-light"
+            data-bs-toggle="modal"
+            data-bs-target="#signInModal"
+          >
+            Sign In
+          </button>
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+
+    <!-- Chat Container -->
+    <div class="chat-container">
+      <div class="chat-history" id="chat-history">
+        <!-- Chat messages will be appended here -->
+      </div>
+
+      <div class="chat-input-section">
+        <input
+          type="text"
+          id="chat-input"
+          class="form-control"
+          placeholder="Type your message here..."
+        />
+        <button id="send-btn" class="btn btn-primary" title="Send">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            fill="currentColor"
+            class="bi bi-send"
+            viewBox="0 0 16 16"
+          >
+            <path
+              d="M15.964.686a.5.5 0 0 0-.58-.086L.767 7.939a.5.5 0 0 0 0 .814l14.617 7.159a.5.5 0 0 0 .58-.086.5.5 0 0 0-.084-.638L2.3 8l13.492-6.576a.5.5 0 0 0 .084-.638z"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Sign-In Modal -->
+    <div
+      class="modal fade"
+      id="signInModal"
+      tabindex="-1"
+      aria-labelledby="signInModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="signInModalLabel">Sign In</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="login-form">
+              <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="username"
+                  name="username"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input
+                  type="password"
+                  class="form-control"
+                  id="password"
+                  name="password"
+                  required
+                />
+              </div>
+              <div id="login-error" class="error-message"></div>
+              <button type="submit" class="btn btn-primary w-100">Login</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies (Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Custom JavaScript -->
+    <script>
+      $(document).ready(function () {
+        // Function to append messages to chat history
+        function appendMessage(sender, message) {
+          const messageClass = sender === "user" ? "user" : "ai";
+          let label = "";
+          if (sender === "ai") {
+            // Remove existing AI labels (e.g., "AI:", "AI Assistant:")
+            message = message.replace(/^AI(?: Assistant)?:\s*/, "");
+            label = '<span class="message-label">AI:</span>';
+          }
+          const messageHtml = `
+                    <div class="chat-message ${messageClass}">
+                        <div class="message-content">
+                            ${label}${message}
+                        </div>
+                    </div>
+                `;
+          $("#chat-history").append(messageHtml);
+          // Scroll to the bottom
+          $("#chat-history").scrollTop($("#chat-history")[0].scrollHeight);
+        }
+
+        // Handle Login Form Submission
+        $("#login-form").on("submit", function (e) {
+          e.preventDefault();
+          const username = $("#username").val();
+          const password = $("#password").val();
+
+          $.ajax({
+            url: "/login",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ username, password }),
+            success: function (response) {
+              // Hide the modal
+              $("#signInModal").modal("hide");
+              // Reload the page to update UI
+              location.reload();
+            },
+            error: function (xhr) {
+              $("#login-error").text(xhr.responseJSON.error);
+            },
+          });
+        });
+
+        // Handle Logout
+        $("#sign-out-btn").on("click", function () {
+          $.ajax({
+            url: "/logout",
+            type: "POST",
+            success: function (response) {
+              // Reload the page to update UI
+              location.reload();
+            },
+            error: function (xhr) {
+              alert("Error logging out.");
+            },
+          });
+        });
+
+        // Handle Send Button Click
+        $("#send-btn").on("click", function () {
+          const message = $("#chat-input").val().trim();
+          if (message === "") {
+            return;
+          }
+
+          // Append user's message
+          appendMessage("user", message);
+          $("#chat-input").val("");
+
+          // Send message to server
+          $.ajax({
+            url: "/chat",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ message }),
+            success: function (response) {
+              appendMessage("ai", response.response);
+            },
+            error: function (xhr) {
+              appendMessage("ai", "An error occurred. Please try again.");
+            },
+          });
+        });
+
+        // Allow sending message by pressing Enter key
+        $("#chat-input").on("keypress", function (e) {
+          if (e.which === 13 && !e.shiftKey) {
+            e.preventDefault();
+            $("#send-btn").click();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
