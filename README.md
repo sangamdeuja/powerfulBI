@@ -12,3 +12,16 @@ The project implements `OpenAI` and `langchain` framwork to query against your d
 * clone this repo.
 * create .env file in root path and provide the environment variables: `OPENAI_API_KEY`,`DB_HOST`,`DB_PORT`,`DB_USER`,`DB_PASSWORD`,`DB_NAME`,`SQL_FILE`,`READ_USER`,`READ_USER_PASSWORD`,`COGNITO_POOL_ID`,`COGNITO_CLIENT_ID`,`COGNITO_REGION`,`FLASK_SECRET_KEY`,`ACCESS_KEY_ID`,`SECRET_ACCESS_KEY`,`ENVIRONMENT`. Here `ACCESS_KEY_ID`,`SECRET_ACCESS_KEY` have been used which is not ideal. Use Service principal or iam role instead. If you are embedding the `ACCESS_KEY_ID`,`SECRET_ACCESS_KEY` directly, don't share to anywhere public.
 * Finally, run ```docker compose up```
+* Here are two images of powerfulBI chatapp
+  <table>
+  <tr>
+    <td align="center">
+      <img src="images/1.png" alt="Image 1" width="400px" />
+      <p style="font-size: 12px;">Unauthenticated user interaction</p>
+    </td>
+    <td align="center">
+      <img src="images/2.png" alt="Image 2" width="400px" />
+      <p style="font-size: 12px;">Authenticated user interaction</p>
+    </td>
+  </tr>
+</table>
